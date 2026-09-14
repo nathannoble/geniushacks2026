@@ -1,1 +1,5 @@
+Prompt:
 Given the information below. Let's create a Gantt chart. Note that the project starts on Sept 14 and should finish on Sept 30. Feel free to expand the tasks to show a better understanding of what needs to be done by each developer. Consider that design  and architecture is shared between 4 developers on the first week. The gantt chart should be in powerpoint and downloadable
+
+Output:
+Gantt chart slides

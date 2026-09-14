@@ -1,4 +1,9 @@
+Prompt:
+
 The prompt below was used to ask AI to come up with a feasible strategy base on available developers , timeline, requirements, etc. 
 
 Please look at this website and tell how you understand it. What are the two best approaches you would recommend to complete the challenge and which one is the better of the two. Outline the logical steps that should be followed to ensure a successful SDLC and how can the task be divided between four developers with relatively equal skills. Give an estimate of when the entire challenge can be completed realistically between four people working around 2 to 4 hours a day.
 Here is the website: https://myridius.com/genius-hacks-q3-2026?_hsenc=p2ANqtz-8oMkkaWHr_1ePiFmWmH5qTS5Es-5_5Q_ykwMlXfpO5H9bpw9_I5lzjZOEwNdh5a_zT6yAq97-VVHLEn1nDfJXurkoVOlI_GmtXM5DOS5SiQWziMEY&_hsmi=435364628
+
+Output:
+Strategy document
