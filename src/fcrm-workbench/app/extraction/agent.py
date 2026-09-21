@@ -45,8 +45,18 @@ _SYSTEM_PROMPT = (
 
 
 def _facts_from_model_response(text: str, filename: str) -> list[ExtractedFact]:
+    # Claude sometimes wraps JSON in a ```json ... ``` fence despite being
+    # told to respond with JSON only. Strip that before parsing rather than
+    # silently returning zero facts.
+    cleaned = text.strip()
+    if cleaned.startswith("```"):
+        cleaned = cleaned.strip("`")
+        if cleaned.startswith("json"):
+            cleaned = cleaned[4:]
+        cleaned = cleaned.strip()
+
     try:
-        parsed = json.loads(text)
+        parsed = json.loads(cleaned)
     except (json.JSONDecodeError, TypeError):
         return []
 
