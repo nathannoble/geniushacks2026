@@ -1,11 +1,15 @@
-# app/extraction/schema.py  (e.g. app/intake/schema.py)
+from __future__ import annotations
+
 from pydantic import BaseModel
 
 
-class Input(BaseModel):
-    case_id: str
+class ExtractedFact(BaseModel):
+    field: str  # "party" | "jurisdiction" | "customer_type" | "transaction_type"
+    value: str
+    source_document: str  # filename
+    source_location: str  # "page 3" (PDF/image) or "para 12" (docx)
 
 
-class Output(BaseModel):
+class ExtractionResult(BaseModel):
     case_id: str
-    status: str = "not_implemented"
+    facts: list[ExtractedFact]

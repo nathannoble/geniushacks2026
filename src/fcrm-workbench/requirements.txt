@@ -7,9 +7,12 @@ pydantic>=2
 sqlalchemy
 psycopg2-binary
 pgvector
-voyageai
+pgvector
+rapidfuzz
+python-docx
 ragas
 deepeval
 langfuse
 python-multipart
 python-dotenv
+pytest

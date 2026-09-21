@@ -1,11 +1,16 @@
-# app/<module>/schema.py  (e.g. app/intake/schema.py)
-from pydantic import BaseModel
+from __future__ import annotations
+
+from pydantic import BaseModel, Field
 
 
-class Input(BaseModel):
+class ScreeningMatch(BaseModel):
+    party_name: str
+    status: str  # "hit" | "no_hit" | "needs_review"
+    matched_entry: str | None = None
+    match_type: str | None = None  # "exact" | "fuzzy" | None
+    confidence: float
+
+
+class ScreeningReport(BaseModel):
     case_id: str
-
-
-class Output(BaseModel):
-    case_id: str
-    status: str = "not_implemented"
+    matches: list[ScreeningMatch] = Field(default_factory=list)
