@@ -14,11 +14,13 @@ import psycopg2
 from pgvector.psycopg2 import register_vector
 
 from .embeddings import embed
+from .idf_store import load_idf_weights
 from .schema import PolicyCitation
 
 
 def retrieve_policy_citations(query_text: str, top_k: int = 5) -> list[PolicyCitation]:
-    vector = embed(query_text)
+    idf = load_idf_weights()
+    vector = embed(query_text, idf=idf)
     conn = psycopg2.connect(os.environ["DATABASE_URL"])
     register_vector(conn)
     try:
