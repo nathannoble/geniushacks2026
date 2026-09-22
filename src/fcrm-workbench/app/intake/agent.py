@@ -10,8 +10,10 @@ from __future__ import annotations
 
 import datetime as dt
 
+from typing import Optional
+
 from .classifier import classify_change_type
-from .db import get_connection, insert_case, next_case_sequence
+from .db import get_connection, insert_case, next_case_sequence, update_case_intake
 from .schema import (
     REQUIRED_FIELDS,
     CaseStatus,
@@ -37,8 +39,13 @@ def _generate_case_id(conn) -> str:
 
 
 def process_intake(
-    submission: CaseSubmission, documents: list[UploadedDocumentRef]
+    submission: CaseSubmission,
+    documents: list[UploadedDocumentRef],
+    existing_case_id: Optional[str] = None,
 ) -> ValidatedCase:
+    """existing_case_id set means this is a resubmission (the Gate 1 RFI
+    loop) — the existing case row is updated in place rather than minting a
+    new case_id, so the same case_id carries through the whole lifecycle."""
     missing = _missing_fields(submission)
 
     change_type = None
@@ -55,17 +62,30 @@ def process_intake(
     )
 
     with get_connection() as conn:
-        case_id = _generate_case_id(conn)
-        insert_case(
-            conn,
-            case_id=case_id,
-            status=status.value,
-            change_type=change_type.value if change_type else None,
-            change_type_confidence=confidence,
-            missing_fields=missing,
-            submission=submission.model_dump(mode="json"),
-            documents=[d.model_dump() for d in documents],
-        )
+        if existing_case_id:
+            case_id = existing_case_id
+            update_case_intake(
+                conn,
+                case_id=case_id,
+                status=status.value,
+                change_type=change_type.value if change_type else None,
+                change_type_confidence=confidence,
+                missing_fields=missing,
+                submission=submission.model_dump(mode="json"),
+                documents=[d.model_dump() for d in documents],
+            )
+        else:
+            case_id = _generate_case_id(conn)
+            insert_case(
+                conn,
+                case_id=case_id,
+                status=status.value,
+                change_type=change_type.value if change_type else None,
+                change_type_confidence=confidence,
+                missing_fields=missing,
+                submission=submission.model_dump(mode="json"),
+                documents=[d.model_dump() for d in documents],
+            )
 
     return ValidatedCase(
         case_id=case_id,

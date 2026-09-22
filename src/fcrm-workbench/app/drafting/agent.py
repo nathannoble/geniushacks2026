@@ -91,13 +91,18 @@ def draft_assessment(
         f"Risk score:\n{score_text}"
     )
 
-    response = _get_client().messages.create(
-        model=_MODEL,
-        max_tokens=1500,
-        system=_SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": user_content}],
-    )
-    parsed = parse_json_safely(response.content[0].text, default={})
+    try:
+        response = _get_client().messages.create(
+            model=_MODEL,
+            max_tokens=1500,
+            system=_SYSTEM_PROMPT,
+            messages=[{"role": "user", "content": user_content}],
+        )
+        parsed = parse_json_safely(response.content[0].text, default={})
+    except Exception as exc:
+        print(f"[drafting] Claude call failed for case {case_id}: {exc}")
+        parsed = {}
+
     if not isinstance(parsed, dict):
         parsed = {}
 

@@ -68,42 +68,50 @@ def _facts_from_model_response(text: str, filename: str) -> list[ExtractedFact]:
 
 def _extract_from_pdf(path: Path, filename: str) -> list[ExtractedFact]:
     data = base64.standard_b64encode(path.read_bytes()).decode("utf-8")
-    response = _get_client().messages.create(
-        model=_MODEL,
-        max_tokens=2000,
-        system=_SYSTEM_PROMPT,
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "document",
-                        "source": {"type": "base64", "media_type": "application/pdf", "data": data},
-                    },
-                    {"type": "text", "text": "Extract the case facts from this document."},
-                ],
-            }
-        ],
-    )
+    try:
+        response = _get_client().messages.create(
+            model=_MODEL,
+            max_tokens=2000,
+            system=_SYSTEM_PROMPT,
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "document",
+                            "source": {"type": "base64", "media_type": "application/pdf", "data": data},
+                        },
+                        {"type": "text", "text": "Extract the case facts from this document."},
+                    ],
+                }
+            ],
+        )
+    except Exception as exc:
+        print(f"[extraction] Claude call failed for {filename}: {exc}")
+        return []
     return _facts_from_model_response(response.content[0].text, filename)
 
 
 def _extract_from_image(path: Path, filename: str, media_type: str) -> list[ExtractedFact]:
     data = base64.standard_b64encode(path.read_bytes()).decode("utf-8")
-    response = _get_client().messages.create(
-        model=_MODEL,
-        max_tokens=2000,
-        system=_SYSTEM_PROMPT,
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": data}},
-                    {"type": "text", "text": "Extract the case facts from this image."},
-                ],
-            }
-        ],
-    )
+    try:
+        response = _get_client().messages.create(
+            model=_MODEL,
+            max_tokens=2000,
+            system=_SYSTEM_PROMPT,
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": data}},
+                        {"type": "text", "text": "Extract the case facts from this image."},
+                    ],
+                }
+            ],
+        )
+    except Exception as exc:
+        print(f"[extraction] Claude call failed for {filename}: {exc}")
+        return []
     return _facts_from_model_response(response.content[0].text, filename)
 
 
@@ -112,14 +120,18 @@ def _extract_from_docx(path: Path, filename: str) -> list[ExtractedFact]:
     paragraphs = [p.text for p in document.paragraphs if p.text.strip()]
     numbered = "\n".join(f"[para {i}] {text}" for i, text in enumerate(paragraphs, start=1))
 
-    response = _get_client().messages.create(
-        model=_MODEL,
-        max_tokens=2000,
-        system=_SYSTEM_PROMPT
-        + ' Documents are Word files with no page numbers — use "para N" (matching the '
-        '[para N] markers) as source_location.',
-        messages=[{"role": "user", "content": f"Extract the case facts from this document:\n\n{numbered}"}],
-    )
+    try:
+        response = _get_client().messages.create(
+            model=_MODEL,
+            max_tokens=2000,
+            system=_SYSTEM_PROMPT
+            + ' Documents are Word files with no page numbers — use "para N" (matching the '
+            '[para N] markers) as source_location.',
+            messages=[{"role": "user", "content": f"Extract the case facts from this document:\n\n{numbered}"}],
+        )
+    except Exception as exc:
+        print(f"[extraction] Claude call failed for {filename}: {exc}")
+        return []
     return _facts_from_model_response(response.content[0].text, filename)
 
 

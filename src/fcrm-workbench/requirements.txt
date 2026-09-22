@@ -1,4 +1,4 @@
-langgraph>=0.2
+langgraph>=0.3
 anthropic
 langchain-anthropic
 fastapi
@@ -16,3 +16,5 @@ langfuse
 python-multipart
 python-dotenv
 pytest
+langgraph-checkpoint-postgres
+psycopg[binary]

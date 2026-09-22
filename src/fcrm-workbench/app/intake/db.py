@@ -70,3 +70,36 @@ def insert_case(
                 psycopg2.extras.Json(documents),
             ),
         )
+
+
+def update_case_intake(
+    conn,
+    case_id: str,
+    status: str,
+    change_type: str | None,
+    change_type_confidence: float | None,
+    missing_fields: list[str],
+    submission: dict,
+    documents: list[dict],
+) -> None:
+    """Used on resubmission (the Gate 1 RFI loop) — same fields as
+    insert_case, but updates the existing row rather than minting a new
+    case_id."""
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            UPDATE cases
+            SET status = %s, change_type = %s, change_type_confidence = %s,
+                missing_fields = %s, submission = %s, documents = %s, updated_at = now()
+            WHERE case_id = %s
+            """,
+            (
+                status,
+                change_type,
+                change_type_confidence,
+                psycopg2.extras.Json(missing_fields),
+                psycopg2.extras.Json(submission),
+                psycopg2.extras.Json(documents),
+                case_id,
+            ),
+        )
