@@ -1,0 +1,25 @@
+{
+  "name": "001_cannabis_high_risk",
+  "description": "Cannabis dispensary banking case with a screening hit and high cash intensity — expects Critical tier and POL-100 as the top policy match.",
+  "document_path": "sample-files/sample_change_request.pdf",
+  "submission": {
+    "description": "Open accounts for licensed cannabis dispensaries in Colorado and Michigan"
+  },
+  "expected_facts": [
+    "Green Leaf Dispensary LLC",
+    "Great Lakes Cannabis Co.",
+    "Marcus J. Holloway",
+    "Colorado",
+    "Michigan"
+  ],
+  "expected_top_policy_id": "POL-100",
+  "factor_scores": {
+    "cash_percentage": 4,
+    "jurisdiction_risk": 2,
+    "screening_hit_severity": 4,
+    "product_novelty": 3,
+    "prior_exam_findings": 1
+  },
+  "has_unresolved_screening_hit": true,
+  "expected_tier": "Critical"
+}

@@ -1,0 +1,21 @@
+{
+  "name": "002_low_risk_atm_limit_change",
+  "description": "Routine ATM withdrawal limit increase for existing retail checking customers — expects Low tier. No expected_top_policy_id: the hashing embedding (app/retrieval/embeddings.py) is bag-of-words-like and unverified for this query without a live run, so this case doesn't assert a specific top match to avoid a possibly-flaky expectation.",
+  "document_path": "eval/golden_docs/atm_limit_change.pdf",
+  "submission": {
+    "description": "Increase the daily ATM withdrawal limit for existing retail checking customers from $500 to $1000"
+  },
+  "expected_facts": [
+    "retail checking",
+    "ATM"
+  ],
+  "factor_scores": {
+    "cash_percentage": 0,
+    "jurisdiction_risk": 0,
+    "screening_hit_severity": 0,
+    "product_novelty": 1,
+    "prior_exam_findings": 1
+  },
+  "has_unresolved_screening_hit": false,
+  "expected_tier": "Low"
+}

@@ -22,6 +22,7 @@ from starlette.concurrency import run_in_threadpool
 load_dotenv()
 
 from app.intake.schema import UploadedDocumentRef
+from app.notifications import db as notifications_db
 from app.orchestrator import db as orchestrator_db
 from app.orchestrator.service import resolve_gate1, resolve_gate2, resubmit_case, start_case
 
@@ -146,6 +147,19 @@ def get_case(case_id: str):
     if row is None:
         raise HTTPException(status_code=404, detail=f"No case {case_id}")
     return row
+
+
+@app.get("/cases/{case_id}/notifications")
+def get_notifications(case_id: str):
+    return notifications_db.list_notifications(case_id)
+
+
+@app.get("/cases/{case_id}/sla")
+def get_sla(case_id: str):
+    status = notifications_db.get_sla_status(case_id)
+    if status is None:
+        raise HTTPException(status_code=404, detail=f"No case {case_id}")
+    return status
 
 
 # Workbench UI static placeholder (app/ui/static) — mounted last so it never

@@ -18,6 +18,7 @@ from app.extraction.agent import extract_case_facts
 from app.extraction.schema import ExtractedFact
 from app.intake.agent import process_intake
 from app.intake.schema import CaseSubmission, UploadedDocumentRef
+from app.notifications.agent import notify
 from app.retrieval.agent import retrieve_policy_citations
 from app.retrieval.schema import PolicyCitation
 from app.scoring.agent import compute_risk_score
@@ -36,6 +37,16 @@ def intake_node(state: CaseGraphState) -> dict:
     existing_case_id = state.get("case_id")
 
     validated = process_intake(submission, documents, existing_case_id=existing_case_id)
+
+    if validated.status.value == "validated":
+        notify(validated.case_id, "product_owner", "case_submitted")
+    else:
+        notify(
+            validated.case_id,
+            "product_owner",
+            "needs_more_information",
+            detail=", ".join(validated.missing_fields),
+        )
 
     return {
         "case_id": validated.case_id,
@@ -102,6 +113,7 @@ def gate1_node(state: CaseGraphState) -> dict:
     doesn't need to stay alive; PostgresSaver has already checkpointed
     everything above, so this can resume hours or days later from a
     completely separate request."""
+    notify(state["case_id"], "analyst", "awaiting_gate1_review")
     decision = interrupt({"gate": "gate1", "case_id": state["case_id"], "memo": state["memo"]})
     orchestrator_db.record_gate_decision(state["case_id"], "gate1", decision)
     return {"gate1_decision": decision}
@@ -109,11 +121,13 @@ def gate1_node(state: CaseGraphState) -> dict:
 
 def rfi_exit_node(state: CaseGraphState) -> dict:
     notes = state.get("gate1_decision", {}).get("notes", "")
+    notify(state["case_id"], "product_owner", "needs_more_information", detail=notes)
     return {"status": "needs_more_information", "rfi_notes": notes}
 
 
 def gate2_node(state: CaseGraphState) -> dict:
     """The second hard stop — the committee's recorded decision."""
+    notify(state["case_id"], "committee", "awaiting_gate2_review")
     decision = interrupt({"gate": "gate2", "case_id": state["case_id"], "memo": state["memo"]})
     orchestrator_db.record_gate_decision(state["case_id"], "gate2", decision)
     return {"gate2_decision": decision}
@@ -122,4 +136,5 @@ def gate2_node(state: CaseGraphState) -> dict:
 def closed_archived_node(state: CaseGraphState) -> dict:
     outcome = state["gate2_decision"]["outcome"]
     orchestrator_db.finalize_case(state["case_id"], outcome)
+    notify(state["case_id"], "product_owner", "case_decided", detail=outcome)
     return {"status": "closed", "final_outcome": outcome}
