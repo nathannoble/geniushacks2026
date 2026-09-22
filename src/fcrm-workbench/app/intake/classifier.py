@@ -7,10 +7,11 @@ field (needs-more-information), never silently guessed past.
 """
 from __future__ import annotations
 
-import json
 import os
 
 from anthropic import Anthropic
+
+from app.common.json_utils import parse_json_safely
 
 from .schema import ChangeType
 
@@ -55,7 +56,9 @@ def classify_change_type(description: str, hint: str | None = None) -> tuple[Cha
             messages=[{"role": "user", "content": user_content}],
         )
         raw = response.content[0].text
-        parsed = json.loads(raw)
+        parsed = parse_json_safely(raw, default=None)
+        if parsed is None:
+            return ChangeType.OTHER, 0.0
         change_type = ChangeType(parsed["change_type"])
         confidence = float(parsed["confidence"])
         return change_type, confidence

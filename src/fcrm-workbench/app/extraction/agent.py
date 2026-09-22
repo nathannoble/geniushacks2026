@@ -12,12 +12,13 @@ numbers stand in for page numbers as the source_location for those.
 from __future__ import annotations
 
 import base64
-import json
 import os
 from pathlib import Path
 
 import docx
 from anthropic import Anthropic
+
+from app.common.json_utils import parse_json_safely
 
 from .schema import ExtractedFact, ExtractionResult
 
@@ -45,19 +46,8 @@ _SYSTEM_PROMPT = (
 
 
 def _facts_from_model_response(text: str, filename: str) -> list[ExtractedFact]:
-    # Claude sometimes wraps JSON in a ```json ... ``` fence despite being
-    # told to respond with JSON only. Strip that before parsing rather than
-    # silently returning zero facts.
-    cleaned = text.strip()
-    if cleaned.startswith("```"):
-        cleaned = cleaned.strip("`")
-        if cleaned.startswith("json"):
-            cleaned = cleaned[4:]
-        cleaned = cleaned.strip()
-
-    try:
-        parsed = json.loads(cleaned)
-    except (json.JSONDecodeError, TypeError):
+    parsed = parse_json_safely(text, default=[])
+    if not isinstance(parsed, list):
         return []
 
     facts: list[ExtractedFact] = []

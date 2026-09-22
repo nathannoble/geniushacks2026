@@ -1,11 +1,21 @@
-# app/<module>/schema.py  (e.g. app/intake/schema.py)
-from pydantic import BaseModel
+from __future__ import annotations
+
+from typing import Optional
+
+from pydantic import BaseModel, Field
 
 
-class Input(BaseModel):
+class ScoreFactor(BaseModel):
+    name: str
+    raw_score: int  # 0-4
+    weight: float
+    contribution: float
+
+
+class RiskScore(BaseModel):
     case_id: str
-
-
-class Output(BaseModel):
-    case_id: str
-    status: str = "not_implemented"
+    tier: str  # "Low" | "Medium" | "High" | "Critical"
+    weighted_total: float
+    factors: list[ScoreFactor] = Field(default_factory=list)
+    floored_by_screening_hit: bool = False
+    rationale: Optional[str] = None

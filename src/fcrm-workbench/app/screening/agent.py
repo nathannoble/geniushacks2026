@@ -8,12 +8,13 @@ alone can't decide.
 """
 from __future__ import annotations
 
-import json
 import os
 
 import psycopg2
 from anthropic import Anthropic
 from rapidfuzz import fuzz
+
+from app.common.json_utils import parse_json_safely
 
 from .schema import ScreeningMatch, ScreeningReport
 
@@ -58,7 +59,9 @@ def _triage_ambiguous_match(party_name: str, matched_name: str, score: float) ->
             max_tokens=150,
             messages=[{"role": "user", "content": prompt}],
         )
-        parsed = json.loads(response.content[0].text)
+        parsed = parse_json_safely(response.content[0].text, default=None)
+        if parsed is None:
+            return "needs_review", 0.5
         return parsed["status"], float(parsed["confidence"])
     except Exception:
         return "needs_review", 0.5

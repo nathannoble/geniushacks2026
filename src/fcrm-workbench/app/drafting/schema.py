@@ -1,11 +1,17 @@
-# app/<module>/schema.py  (e.g. app/intake/schema.py)
-from pydantic import BaseModel
+from __future__ import annotations
+
+from pydantic import BaseModel, Field
 
 
-class Input(BaseModel):
+class MemoCitation(BaseModel):
+    source: str  # e.g. "M2 extraction: file.pdf, page 1" or "M3 policy: POL-100"
+    excerpt: str
+
+
+class DraftMemo(BaseModel):
     case_id: str
-
-
-class Output(BaseModel):
-    case_id: str
-    status: str = "not_implemented"
+    risk_tier: str
+    summary: str
+    citations: list[MemoCitation] = Field(default_factory=list)
+    open_questions: list[str] = Field(default_factory=list)
+    suggested_conditions: list[str] = Field(default_factory=list)
