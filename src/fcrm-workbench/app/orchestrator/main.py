@@ -13,7 +13,8 @@ from pathlib import Path
 from typing import Optional
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, Form, HTTPException, UploadFile, File
+from fastapi import FastAPI, Form, HTTPException, UploadFile, File, Request
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
@@ -24,17 +25,38 @@ load_dotenv()
 from app.intake.schema import UploadedDocumentRef
 from app.notifications import db as notifications_db
 from app.orchestrator import db as orchestrator_db
-from app.orchestrator.service import resolve_gate1, resolve_gate2, resubmit_case, start_case
+from app.orchestrator.service import (
+    get_case_state,
+    resolve_gate1,
+    resolve_gate2,
+    resubmit_case,
+    start_case,
+)
 
 app = FastAPI(title="FCRM Workbench")
+
+@app.middleware("http")
+async def add_no_cache_for_ui(request, call_next):
+    response = await call_next(request)
+    if request.url.path.startswith("/ui"):
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
 
 UPLOAD_DIR = Path(os.environ.get("UPLOAD_DIR", "./uploads"))
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
+@app.get("/", include_in_schema=False)
+def root():
+    return RedirectResponse(url="/ui/")
+
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
 
 
 async def _save_uploads(files: list[UploadFile]) -> list[dict]:
@@ -69,6 +91,7 @@ def _submission_dict(
 
 @app.post("/cases")
 async def create_case(
+    request: Request,
     product_type: Optional[str] = Form(None),
     change_type: Optional[str] = Form(None),
     geography: Optional[str] = Form(None),
@@ -78,11 +101,21 @@ async def create_case(
     files: list[UploadFile] = File(default=[]),
 ):
     """Runs the whole graph: intake -> extraction/retrieval -> screening ->
-    scoring -> drafting -> Gate 1, in one blocking call. For a case that
-    validates, this response is the graph paused at Gate 1 with the draft
-    memo attached (state["awaiting"] == ["gate1"]); for an incomplete
-    submission, it's the needs_more_information result and nothing beyond
-    intake ran."""
+    scoring -> drafting -> Gate 1, in one blocking call. Supports both Form data
+    and JSON payloads."""
+    content_type = request.headers.get("content-type", "")
+    if "application/json" in content_type:
+        try:
+            data = await request.json()
+            product_type = data.get("product_type") or product_type
+            change_type = data.get("change_type") or change_type
+            geography = data.get("geography") or geography
+            segment = data.get("segment") or segment
+            target_date = data.get("target_date") or target_date
+            description = data.get("description") or description
+        except Exception:
+            pass
+
     submission = _submission_dict(product_type, change_type, geography, segment, target_date, description)
     documents = await _save_uploads(files)
     return await run_in_threadpool(start_case, submission, documents)
@@ -91,6 +124,7 @@ async def create_case(
 @app.post("/cases/{case_id}/resubmit")
 async def resubmit(
     case_id: str,
+    request: Request,
     product_type: Optional[str] = Form(None),
     change_type: Optional[str] = Form(None),
     geography: Optional[str] = Form(None),
@@ -101,8 +135,31 @@ async def resubmit(
 ):
     """The other half of the Gate 1 RFI loop — re-enters the same case_id's
     thread at intake with updated fields."""
+    content_type = request.headers.get("content-type", "")
+    if "application/json" in content_type:
+        try:
+            data = await request.json()
+            product_type = data.get("product_type") or product_type
+            change_type = data.get("change_type") or change_type
+            geography = data.get("geography") or geography
+            segment = data.get("segment") or segment
+            target_date = data.get("target_date") or target_date
+            description = data.get("description") or description
+        except Exception:
+            pass
+
     submission = _submission_dict(product_type, change_type, geography, segment, target_date, description)
     documents = await _save_uploads(files)
+
+    row = orchestrator_db.get_case_row(case_id)
+    if row:
+        if not documents and row.get("documents"):
+            documents = row["documents"]
+        if row.get("submission"):
+            for k, v in row["submission"].items():
+                if not submission.get(k) and v:
+                    submission[k] = v
+
     try:
         return await run_in_threadpool(resubmit_case, case_id, submission, documents)
     except ValueError as exc:
@@ -141,12 +198,33 @@ async def gate2(case_id: str, decision: Gate2Decision):
         raise HTTPException(status_code=404, detail=str(exc))
 
 
+@app.get("/cases")
+def list_cases():
+    """List recent cases for the Workbench Dashboard queue."""
+    return orchestrator_db.list_cases(limit=100)
+
+
 @app.get("/cases/{case_id}")
 def get_case(case_id: str):
     row = orchestrator_db.get_case_row(case_id)
     if row is None:
         raise HTTPException(status_code=404, detail=f"No case {case_id}")
     return row
+
+
+@app.get("/cases/{case_id}/state")
+async def get_state(case_id: str):
+    """Returns the full LangGraph state checkpoint for a case."""
+    try:
+        return await run_in_threadpool(get_case_state, case_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    except Exception as exc:
+        row = orchestrator_db.get_case_row(case_id)
+        if row:
+            return {"case_id": case_id, "status": row.get("status"), "row": row}
+        raise HTTPException(status_code=404, detail=f"No state available for {case_id}: {exc}")
+
 
 
 @app.get("/cases/{case_id}/notifications")
@@ -164,6 +242,10 @@ def get_sla(case_id: str):
 
 # Workbench UI static placeholder (app/ui/static) — mounted last so it never
 # shadows the API routes above.
+_samples_dir = Path("sample-files")
+if _samples_dir.exists():
+    app.mount("/sample-files", StaticFiles(directory=str(_samples_dir)), name="sample-files")
+
 _ui_dir = Path("app/ui/static")
 if _ui_dir.exists():
     app.mount("/ui", StaticFiles(directory=str(_ui_dir), html=True), name="ui")

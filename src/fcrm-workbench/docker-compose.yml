@@ -1,10 +1,13 @@
 services:
   app:
     build: .
+    platform: linux/amd64
     container_name: fcrm-app
     ports:
       - "8000:8000"
     env_file: .env
+    environment:
+      DATABASE_URL: postgresql://fcrm:${POSTGRES_PASSWORD}@db:5432/fcrm_workbench
     depends_on:
       - db
     volumes:
@@ -13,6 +16,7 @@ services:
 
   db:
     image: pgvector/pgvector:pg16   # Postgres 16 + pgvector extension pre-installed
+    platform: linux/amd64
     container_name: fcrm-db
     environment:
       POSTGRES_USER: fcrm
@@ -27,9 +31,11 @@ services:
 
   langfuse:
     image: langfuse/langfuse:2
+    platform: linux/amd64
     container_name: fcrm-langfuse
     environment:
-      DATABASE_URL: postgresql://fcrm:${POSTGRES_PASSWORD}@db:5432/fcrm_workbench
+      DATABASE_URL: postgresql://fcrm:${POSTGRES_PASSWORD}@db:5432/fcrm_workbench?schema=langfuse
+      NEXTAUTH_URL: http://localhost:3001
       NEXTAUTH_SECRET: ${LANGFUSE_SECRET}
       SALT: ${LANGFUSE_SALT}
     ports:

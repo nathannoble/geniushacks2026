@@ -15,7 +15,7 @@ import os
 
 from anthropic import Anthropic
 
-from app.common.json_utils import parse_json_safely
+from app.common.json_utils import get_response_text, parse_json_safely
 from app.retrieval.schema import PolicyCitation
 from app.scoring.schema import RiskScore
 from app.screening.schema import ScreeningReport
@@ -98,7 +98,7 @@ def draft_assessment(
             system=_SYSTEM_PROMPT,
             messages=[{"role": "user", "content": user_content}],
         )
-        parsed = parse_json_safely(response.content[0].text, default={})
+        parsed = parse_json_safely(get_response_text(response), default={})
     except Exception as exc:
         print(f"[drafting] Claude call failed for case {case_id}: {exc}")
         parsed = {}

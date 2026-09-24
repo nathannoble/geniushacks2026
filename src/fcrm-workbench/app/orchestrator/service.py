@@ -70,3 +70,15 @@ def resolve_gate2(case_id: str, outcome: str, conditions: list[str] | None = Non
         )
         state = graph.get_state(config)
     return _snapshot_to_dict(state)
+
+
+def get_case_state(case_id: str) -> dict:
+    """Returns the full LangGraph checkpoint state (facts, citations, screening,
+    risk score, draft memo, gate decisions) for a case."""
+    thread_id = orchestrator_db.get_thread_id(case_id)
+    with get_checkpointer() as checkpointer:
+        graph = get_compiled_graph(checkpointer)
+        config = {"configurable": {"thread_id": thread_id}}
+        state = graph.get_state(config)
+    return _snapshot_to_dict(state)
+

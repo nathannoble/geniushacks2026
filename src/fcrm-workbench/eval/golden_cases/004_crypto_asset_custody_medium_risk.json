@@ -1,0 +1,28 @@
+{
+  "name": "004_crypto_asset_custody_medium_risk",
+  "description": "Institutional digital asset qualified custody and staking service with clean screening and 0% physical cash \u2014 expects Medium risk tier.",
+  "document_path": "sample-files/004_crypto_asset_custody_medium_risk.pdf",
+  "submission": {
+    "product_type": "Institutional Digital Asset Custody & Staking",
+    "change_type": "new_product",
+    "geography": "New York, Delaware, California",
+    "segment": "Institutional Wealth & Registered Investment Funds",
+    "target_date": "2026-10-30",
+    "description": "Segregated digital asset custodial service with validator staking yield for institutional funds and RIAs in NY and DE."
+  },
+  "expected_facts": [
+    "Aegis Digital Capital LLC",
+    "Dr. Helena Vance",
+    "Anchorage Trust Corp",
+    "registered investment adviser"
+  ],
+  "factor_scores": {
+    "cash_percentage": 1,
+    "jurisdiction_risk": 2,
+    "screening_hit_severity": 0,
+    "product_novelty": 4,
+    "prior_exam_findings": 2
+  },
+  "has_unresolved_screening_hit": false,
+  "expected_tier": "Medium"
+}

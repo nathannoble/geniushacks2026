@@ -10,8 +10,7 @@ CREATE TABLE IF NOT EXISTS policy_chunks (
     embedding   VECTOR(256) NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_policy_chunks_embedding
-    ON policy_chunks USING ivfflat (embedding vector_cosine_ops) WITH (lists = 10);
+-- For a curated policy library under 10k rows, exact vector scan provides instantaneous (<1ms) 100% recall without list-clustering drops.
 
 -- M2 (facts), M3 (citations), M4 (screening) each write their output onto
 -- the case row for now, ahead of M0's orchestrator tying them together.

@@ -1,0 +1,28 @@
+{
+  "name": "005_commercial_fleet_card_low_risk",
+  "description": "Commercial corporate fleet expense and fuel card limit increase for domestic transportation firm \u2014 clean screening, 0% cash, expects Low risk tier.",
+  "document_path": "sample-files/005_commercial_fleet_card_low_risk.pdf",
+  "submission": {
+    "product_type": "Commercial Fleet Fuel & Maintenance Credit Card",
+    "change_type": "product_modification",
+    "geography": "Texas, Illinois, Ohio, Indiana",
+    "segment": "Commercial Transportation & Logistics",
+    "target_date": "2026-10-01",
+    "description": "Increase revolving corporate credit ceiling from $250k to $750k for verified domestic freight logistics company with hard MCC fuel controls."
+  },
+  "expected_facts": [
+    "Midwest Express Logistics Inc",
+    "Robert J. Callahan",
+    "Mastercard Commercial Fleet Network",
+    "commercial transportation operator"
+  ],
+  "factor_scores": {
+    "cash_percentage": 0,
+    "jurisdiction_risk": 0,
+    "screening_hit_severity": 0,
+    "product_novelty": 1,
+    "prior_exam_findings": 1
+  },
+  "has_unresolved_screening_hit": false,
+  "expected_tier": "Low"
+}

@@ -1,0 +1,28 @@
+{
+  "name": "006_pep_private_wealth_onboarding_high_risk",
+  "description": "Offshore trust depository onboarding for Politically Exposed Person (Amara Chukwuemeka Obi) \u2014 tests screening-hit floor rule under POL-045, expects High tier.",
+  "document_path": "sample-files/006_pep_private_wealth_onboarding_high_risk.pdf",
+  "submission": {
+    "product_type": "International Private Wealth Trust Depository",
+    "change_type": "new_customer_segment",
+    "geography": "Florida, United Kingdom, Nigeria, Bahamas",
+    "segment": "Non-Resident Ultra-High-Net-Worth Private Banking",
+    "target_date": "2026-11-01",
+    "description": "Establish wealth depository and investment custodial accounts for non-resident UHNW trust holding vehicle owned by Amara Chukwuemeka Obi."
+  },
+  "expected_facts": [
+    "Amara Chukwuemeka Obi",
+    "Obi Heritage Capital Trust",
+    "Florida",
+    "Nigeria"
+  ],
+  "factor_scores": {
+    "cash_percentage": 0,
+    "jurisdiction_risk": 2,
+    "screening_hit_severity": 3,
+    "product_novelty": 2,
+    "prior_exam_findings": 1
+  },
+  "has_unresolved_screening_hit": true,
+  "expected_tier": "High"
+}

@@ -78,3 +78,37 @@ def get_case_row(case_id: str) -> Optional[dict]:
     finally:
         conn.close()
     return dict(row) if row else None
+
+
+def update_case_risk(case_id: str, risk_tier: str, risk_score: float) -> None:
+    conn = _connect()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE cases SET risk_tier = %s, risk_score = %s WHERE case_id = %s",
+                (risk_tier, risk_score, case_id),
+            )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def list_cases(limit: int = 50) -> list[dict]:
+    try:
+        conn = _connect()
+        try:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute(
+                    "SELECT case_id, status, change_type, change_type_confidence, missing_fields, "
+                    "submission, documents, thread_id, final_outcome, risk_tier, risk_score, created_at, updated_at "
+                    "FROM cases ORDER BY created_at DESC LIMIT %s",
+                    (limit,),
+                )
+                rows = cur.fetchall()
+                return [dict(r) for r in rows]
+        finally:
+            conn.close()
+    except Exception as exc:
+        print(f"[orchestrator_db] list_cases notice: {exc}")
+        return []
+

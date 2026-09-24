@@ -11,6 +11,7 @@ import os
 
 from anthropic import Anthropic
 
+from app.common.json_utils import get_response_text
 from .schema import RiskScore
 
 _client: Anthropic | None = None
@@ -51,7 +52,7 @@ def generate_rationale(score: RiskScore) -> str:
             system=_SYSTEM_PROMPT,
             messages=[{"role": "user", "content": prompt}],
         )
-        return response.content[0].text.strip()
+        return get_response_text(response).strip()
     except Exception:
         return (
             f"Automated rationale unavailable. Weighted total {score.weighted_total} "

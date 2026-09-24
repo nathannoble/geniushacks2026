@@ -1,5 +1,16 @@
+# Environment & Secret files
 .env
-.venv
-.pyc
-.DS_Store
+.env.*
+.env.local
+!.env.example
+
+# Python
 *.pyc
+__pycache__/
+.venv/
+venv/
+.pytest_cache/
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS vector;
+
 -- Case Database: system of record for every case (M1, M9, orchestrator, Workbench UI)
 
 CREATE TABLE IF NOT EXISTS case_id_sequences (
@@ -13,6 +15,8 @@ CREATE TABLE IF NOT EXISTS cases (
     missing_fields          JSONB NOT NULL DEFAULT '[]',
     submission               JSONB NOT NULL,
     documents                JSONB NOT NULL DEFAULT '[]',
+    risk_tier               TEXT,
+    risk_score              REAL,
     created_at               TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at               TIMESTAMPTZ NOT NULL DEFAULT now()
 );

@@ -1,0 +1,27 @@
+{
+  "name": "007_incomplete_vendor_payment_portal_rfi",
+  "description": "Third-party payment gateway integration with vendor watchlist hit (Summit Peak Vendor Services) and missing target date / operational metrics \u2014 tests Gate 1 RFI flow.",
+  "document_path": "sample-files/007_incomplete_vendor_payment_portal_rfi.pdf",
+  "submission": {
+    "product_type": "Instant Payment Clearing & Vendor Gateway",
+    "change_type": "vendor_relationship",
+    "geography": "United States",
+    "segment": "Third-Party Payment Service Provider",
+    "target_date": null,
+    "description": "API integration with third-party gateway for real-time retail credit push disbursements through RTP and FedNow."
+  },
+  "expected_facts": [
+    "Summit Peak Vendor Services",
+    "David Miller",
+    "third-party payment service provider"
+  ],
+  "factor_scores": {
+    "cash_percentage": 0,
+    "jurisdiction_risk": 1,
+    "screening_hit_severity": 2,
+    "product_novelty": 3,
+    "prior_exam_findings": 1
+  },
+  "has_unresolved_screening_hit": false,
+  "expected_tier": "Medium"
+}

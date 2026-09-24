@@ -95,6 +95,7 @@ def scoring_node(state: CaseGraphState) -> dict:
     factor_scores = map_facts_to_factor_scores(facts, screening, state.get("change_type"))
     has_hit = any(m.status == "hit" for m in screening.matches)
     score = compute_risk_score(state["case_id"], factor_scores, has_hit)
+    orchestrator_db.update_case_risk(state["case_id"], score.tier, score.weighted_total)
     return {"factor_scores": factor_scores, "risk_score": score.model_dump()}
 
 

@@ -18,7 +18,7 @@ from pathlib import Path
 import docx
 from anthropic import Anthropic
 
-from app.common.json_utils import parse_json_safely
+from app.common.json_utils import get_response_text, parse_json_safely
 
 from .schema import ExtractedFact, ExtractionResult
 
@@ -89,7 +89,7 @@ def _extract_from_pdf(path: Path, filename: str) -> list[ExtractedFact]:
     except Exception as exc:
         print(f"[extraction] Claude call failed for {filename}: {exc}")
         return []
-    return _facts_from_model_response(response.content[0].text, filename)
+    return _facts_from_model_response(get_response_text(response), filename)
 
 
 def _extract_from_image(path: Path, filename: str, media_type: str) -> list[ExtractedFact]:
@@ -112,7 +112,7 @@ def _extract_from_image(path: Path, filename: str, media_type: str) -> list[Extr
     except Exception as exc:
         print(f"[extraction] Claude call failed for {filename}: {exc}")
         return []
-    return _facts_from_model_response(response.content[0].text, filename)
+    return _facts_from_model_response(get_response_text(response), filename)
 
 
 def _extract_from_docx(path: Path, filename: str) -> list[ExtractedFact]:
@@ -132,7 +132,7 @@ def _extract_from_docx(path: Path, filename: str) -> list[ExtractedFact]:
     except Exception as exc:
         print(f"[extraction] Claude call failed for {filename}: {exc}")
         return []
-    return _facts_from_model_response(response.content[0].text, filename)
+    return _facts_from_model_response(get_response_text(response), filename)
 
 
 _DOCX_MIME_TYPES = {

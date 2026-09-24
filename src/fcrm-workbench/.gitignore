@@ -1,0 +1,12 @@
+# Environment & Secret files
+.env
+.env.*
+.env.local
+!.env.example
+
+# Python
+*.pyc
+__pycache__/
+.venv/
+venv/
+.pytest_cache/

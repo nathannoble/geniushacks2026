@@ -1,0 +1,29 @@
+{
+  "name": "003_cross_border_remittance_high_risk",
+  "description": "Cross-border commercial remittance corridor with an active screening hit (Meridian Overseas Holdings Ltd) and high-velocity international wire transfers \u2014 expects Critical/High tier.",
+  "document_path": "sample-files/003_cross_border_remittance_high_risk.pdf",
+  "submission": {
+    "product_type": "Cross-Border Commercial Remittance Corridor",
+    "change_type": "new_geography",
+    "geography": "United States, Mexico, Colombia, United Arab Emirates",
+    "segment": "Money Services Business / Cross-Border Remittance",
+    "target_date": "2026-11-15",
+    "description": "Open multi-currency clearing accounts for cross-border MSBs supporting high-velocity wire remittances across the US, Mexico, Colombia, and UAE free zones."
+  },
+  "expected_facts": [
+    "Meridian Global Payments LLC",
+    "Meridian Overseas Holdings Ltd",
+    "Carlos Mendoza-Vargas",
+    "money services business",
+    "wire transfers"
+  ],
+  "factor_scores": {
+    "cash_percentage": 2,
+    "jurisdiction_risk": 4,
+    "screening_hit_severity": 4,
+    "product_novelty": 3,
+    "prior_exam_findings": 2
+  },
+  "has_unresolved_screening_hit": true,
+  "expected_tier": "Critical"
+}
