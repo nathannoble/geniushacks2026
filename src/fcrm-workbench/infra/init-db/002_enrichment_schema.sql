@@ -1,5 +1,7 @@
 -- Synthetic Policy Library (M3) + case columns for M2/M3/M4 outputs
 
+CREATE EXTENSION IF NOT EXISTS vector;
+
 CREATE TABLE IF NOT EXISTS policy_chunks (
     id          SERIAL PRIMARY KEY,
     policy_id   TEXT NOT NULL,
