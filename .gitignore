@@ -14,3 +14,8 @@ venv/
 # OS
 .DS_Store
 Thumbs.db
+src/fcrm-workbench/app/common/__pycache__/
+src/fcrm-workbench/app/drafting/__pycache__/
+src/fcrm-workbench/app/screening/__pycache__/
+src/fcrm-workbench/app/.DS_Store
+src/fcrm-workbench/uploads/*.pdf
