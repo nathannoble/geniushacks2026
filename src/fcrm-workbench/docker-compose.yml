@@ -6,12 +6,23 @@ services:
     ports:
       - "8000:8000"
     env_file: .env
-    environment:
-      DATABASE_URL: postgresql://fcrm:${POSTGRES_PASSWORD}@db:5432/fcrm_workbench
     depends_on:
       - db
     volumes:
       - ./app:/app/app          # live-reload during development
+    networks: [fcrm-net]
+
+  frontend:
+    build: 
+      context: ./app/ui/static
+      dockerfile: Dockerfile.frontend
+    container_name: fcrm-frontend
+    env_file: .env
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./app/ui/static:/app
+      - /app/node_modules
     networks: [fcrm-net]
 
   db:

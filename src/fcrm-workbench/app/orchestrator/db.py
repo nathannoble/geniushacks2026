@@ -92,6 +92,18 @@ def update_case_risk(case_id: str, risk_tier: str, risk_score: float) -> None:
     finally:
         conn.close()
 
+def update_case_status(case_id: str, status: str) -> None:
+    conn = _connect()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE cases SET status = %s WHERE case_id = %s",
+                (status, case_id),
+            )
+        conn.commit()
+    finally:
+        conn.close()
+
 
 def list_cases(limit: int = 50) -> list[dict]:
     try:

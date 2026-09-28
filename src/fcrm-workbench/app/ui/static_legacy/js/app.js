@@ -14,7 +14,8 @@ class FCRMApp {
     this.activeFilterStatus = 'all';
     this.activeFilterRisk = 'all';
     this.searchQuery = '';
-    this.currentPersona = 'Compliance Analyst';
+    // Role will be populated from Supabase via auth.js
+    this.currentPersona = window.currentUserRole || 'Product Owner';
     this.uploadedFiles = [];
 
     this.initElements();
@@ -28,7 +29,8 @@ class FCRMApp {
     this.navQueue = document.getElementById('nav-queue');
     this.navNewCase = document.getElementById('nav-new-case');
     this.navDossier = document.getElementById('nav-dossier');
-    this.personaSelect = document.getElementById('persona-select');
+    this.personaSelect = document.getElementById('persona-select'); // Kept for safety, though removed from UI
+
 
     // Views
     this.viewQueue = document.getElementById('view-queue');
@@ -57,14 +59,16 @@ class FCRMApp {
     this.navNewCase.addEventListener('click', (e) => { e.preventDefault(); this.switchView('new-case'); });
     this.navDossier.addEventListener('click', (e) => { e.preventDefault(); this.switchView('dossier'); });
 
-    // Persona switch
-    this.personaSelect.addEventListener('change', (e) => {
-      this.currentPersona = e.target.value;
-      this.showToast(`Switched active persona to ${this.currentPersona}`);
-      if (this.currentView === 'dossier' && this.currentCaseId) {
-        this.renderDossierActions();
-      }
-    });
+    // Persona switch (removed, handled by auth.js)
+    if (this.personaSelect) {
+      this.personaSelect.addEventListener('change', (e) => {
+        this.currentPersona = e.target.value;
+        this.showToast(`Switched active persona to ${this.currentPersona}`);
+        if (this.currentView === 'dossier' && this.currentCaseId) {
+          this.renderDossierActions();
+        }
+      });
+    }
 
     // Search and Filter
     if (this.searchInput) {
@@ -397,13 +401,13 @@ class FCRMApp {
 
     const isRfi = status === 'rfi' || status === 'needs_more_information';
 
-    if (isAwaitingGate1) {
+    if (isAwaitingGate1 && this.currentPersona === 'Compliance Analyst') {
       const g1Btn = document.createElement('button');
       g1Btn.className = 'btn-primary';
       g1Btn.innerHTML = '⚖️ Review Gate 1 (Analyst)';
       g1Btn.onclick = () => this.openGate1Modal(caseData);
       container.appendChild(g1Btn);
-    } else if (isAwaitingGate2) {
+    } else if (isAwaitingGate2 && this.currentPersona === 'Committee Member') {
       const g2Btn = document.createElement('button');
       g2Btn.className = 'btn-emerald';
       g2Btn.innerHTML = '🏛️ Decide Gate 2 (Committee)';
@@ -411,7 +415,7 @@ class FCRMApp {
       container.appendChild(g2Btn);
     }
 
-    if (isRfi) {
+    if (isRfi && this.currentPersona === 'Product Owner') {
       const rfiBtn = document.createElement('button');
       rfiBtn.className = 'btn-secondary';
       rfiBtn.style.borderColor = 'var(--accent-rose)';
@@ -439,15 +443,6 @@ class FCRMApp {
         }
       };
       container.appendChild(rfiBtn);
-
-      // If viewing as Compliance Analyst, allow reviewing Gate 1 directly
-      if (!isAwaitingGate1) {
-        const g1Btn = document.createElement('button');
-        g1Btn.className = 'btn-primary';
-        g1Btn.innerHTML = '⚖️ Review Gate 1 (Analyst)';
-        g1Btn.onclick = () => this.openGate1Modal(caseData);
-        container.appendChild(g1Btn);
-      }
     }
   }
 
@@ -1423,6 +1418,8 @@ class FCRMApp {
   // Gate 1 Modal
   openGate1Modal(caseData) {
     document.getElementById('gate1-case-id').textContent = caseData.case_id;
+    // Update persona right before opening modal in case it changed
+    this.currentPersona = window.currentUserRole || 'Product Owner';
     document.getElementById('gate1-actor').value = this.currentPersona;
     document.getElementById('gate1-notes').value = '';
     this.gate1Modal.classList.add('active');
@@ -1444,6 +1441,7 @@ class FCRMApp {
   // Gate 2 Modal
   openGate2Modal(caseData) {
     document.getElementById('gate2-case-id').textContent = caseData.case_id;
+    this.currentPersona = window.currentUserRole || 'Product Owner';
     document.getElementById('gate2-actor').value = this.currentPersona;
     document.getElementById('gate2-conditions-list').innerHTML = '';
     

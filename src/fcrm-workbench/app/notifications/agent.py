@@ -17,6 +17,7 @@ import os
 
 from . import db
 from .templates import render
+from .email import send_notification_email
 
 WEBHOOK_URL = os.environ.get("WEBHOOK_URL")
 
@@ -24,6 +25,9 @@ WEBHOOK_URL = os.environ.get("WEBHOOK_URL")
 def notify(case_id: str, persona: str, event_type: str, detail: str = "") -> None:
     message = render(event_type, case_id, detail)
     channel = "log"
+
+    if event_type in ["awaiting_gate1_review", "awaiting_gate2_review"]:
+        send_notification_email(event_type, case_id, detail)
 
     if WEBHOOK_URL:
         try:

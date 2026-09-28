@@ -114,6 +114,7 @@ def gate1_node(state: CaseGraphState) -> dict:
     doesn't need to stay alive; PostgresSaver has already checkpointed
     everything above, so this can resume hours or days later from a
     completely separate request."""
+    orchestrator_db.update_case_status(state["case_id"], "awaiting_gate1")
     notify(state["case_id"], "analyst", "awaiting_gate1_review")
     decision = interrupt({"gate": "gate1", "case_id": state["case_id"], "memo": state["memo"]})
     orchestrator_db.record_gate_decision(state["case_id"], "gate1", decision)
@@ -122,12 +123,14 @@ def gate1_node(state: CaseGraphState) -> dict:
 
 def rfi_exit_node(state: CaseGraphState) -> dict:
     notes = state.get("gate1_decision", {}).get("notes", "")
+    orchestrator_db.update_case_status(state["case_id"], "needs_more_information")
     notify(state["case_id"], "product_owner", "needs_more_information", detail=notes)
     return {"status": "needs_more_information", "rfi_notes": notes}
 
 
 def gate2_node(state: CaseGraphState) -> dict:
     """The second hard stop — the committee's recorded decision."""
+    orchestrator_db.update_case_status(state["case_id"], "awaiting_gate2")
     notify(state["case_id"], "committee", "awaiting_gate2_review")
     decision = interrupt({"gate": "gate2", "case_id": state["case_id"], "memo": state["memo"]})
     orchestrator_db.record_gate_decision(state["case_id"], "gate2", decision)

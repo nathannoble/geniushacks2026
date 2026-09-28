@@ -1563,3 +1563,160 @@ body {
   .form-group.full-width { grid-column: span 1; }
   .score-overview { grid-template-columns: 1fr; }
 }
+
+/* Login Screen (Light Mode - EducatorDesk Style) */
+#auth-screen {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: #F8FAFC; /* Very light gray/blue background */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.login-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 3rem 2.5rem;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
+.login-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  margin-bottom: 1rem;
+}
+
+.login-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  margin-bottom: 1.5rem;
+  color: #0F172A;
+  text-transform: uppercase;
+}
+
+.login-subtitle-large {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: #0F172A;
+}
+
+.login-subtitle {
+  font-size: 0.95rem;
+  color: #64748B;
+  margin-bottom: 2rem;
+}
+
+.btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  background: #FFFFFF;
+  color: #334155;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 0.85rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-google:hover {
+  background: #F8FAFC;
+}
+
+.auth-form {
+  text-align: left;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Light mode overrides for inputs inside the auth card */
+.login-card .form-label {
+  color: #334155;
+  font-size: 0.85rem;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 600;
+}
+
+.login-card .form-input {
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
+  color: #0F172A;
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+}
+
+.login-card .form-input:focus {
+  background: #FFFFFF;
+  border-color: #6366F1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.login-card .btn-primary {
+  background: #6366F1;
+  border-radius: 8px;
+  padding: 0.9rem;
+  font-size: 1rem;
+  box-shadow: none;
+}
+
+.login-card .btn-primary:hover {
+  background: #4F46E5;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 1.5rem 0;
+  color: #94A3B8;
+  font-size: 0.85rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.auth-divider span {
+  padding: 0 0.75rem;
+}
+
+.auth-link {
+  color: #6366F1;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.auth-link:hover {
+  color: #4F46E5;
+  text-decoration: underline;
+}
+
+.auth-footer {
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+  color: #64748B;
+}
+
+.text-xs {
+  font-size: 0.8rem;
+}

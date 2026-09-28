@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Optional
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, Form, HTTPException, UploadFile, File, Request
+from fastapi import FastAPI, Form, HTTPException, UploadFile, File, Request, Depends
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -25,6 +25,7 @@ load_dotenv()
 from app.intake.schema import UploadedDocumentRef
 from app.notifications import db as notifications_db
 from app.orchestrator import db as orchestrator_db
+from app.middleware.auth import require_auth
 from app.orchestrator.service import (
     get_case_state,
     resolve_gate1,
@@ -99,6 +100,7 @@ async def create_case(
     target_date: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
     files: list[UploadFile] = File(default=[]),
+    user = Depends(require_auth)
 ):
     """Runs the whole graph: intake -> extraction/retrieval -> screening ->
     scoring -> drafting -> Gate 1, in one blocking call. Supports both Form data
@@ -132,6 +134,7 @@ async def resubmit(
     target_date: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
     files: list[UploadFile] = File(default=[]),
+    user = Depends(require_auth)
 ):
     """The other half of the Gate 1 RFI loop — re-enters the same case_id's
     thread at intake with updated fields."""
@@ -173,7 +176,7 @@ class Gate1Decision(BaseModel):
 
 
 @app.post("/cases/{case_id}/gate1")
-async def gate1(case_id: str, decision: Gate1Decision):
+async def gate1(case_id: str, decision: Gate1Decision, user = Depends(require_auth)):
     try:
         return await run_in_threadpool(
             resolve_gate1, case_id, decision.action, decision.notes, decision.actor
@@ -189,7 +192,7 @@ class Gate2Decision(BaseModel):
 
 
 @app.post("/cases/{case_id}/gate2")
-async def gate2(case_id: str, decision: Gate2Decision):
+async def gate2(case_id: str, decision: Gate2Decision, user = Depends(require_auth)):
     try:
         return await run_in_threadpool(
             resolve_gate2, case_id, decision.outcome, decision.conditions, decision.actor
@@ -199,13 +202,13 @@ async def gate2(case_id: str, decision: Gate2Decision):
 
 
 @app.get("/cases")
-def list_cases():
+def list_cases(user = Depends(require_auth)):
     """List recent cases for the Workbench Dashboard queue."""
     return orchestrator_db.list_cases(limit=100)
 
 
 @app.get("/cases/{case_id}")
-def get_case(case_id: str):
+def get_case(case_id: str, user = Depends(require_auth)):
     row = orchestrator_db.get_case_row(case_id)
     if row is None:
         raise HTTPException(status_code=404, detail=f"No case {case_id}")
@@ -213,7 +216,7 @@ def get_case(case_id: str):
 
 
 @app.get("/cases/{case_id}/state")
-async def get_state(case_id: str):
+async def get_state(case_id: str, user = Depends(require_auth)):
     """Returns the full LangGraph state checkpoint for a case."""
     try:
         return await run_in_threadpool(get_case_state, case_id)
@@ -228,12 +231,12 @@ async def get_state(case_id: str):
 
 
 @app.get("/cases/{case_id}/notifications")
-def get_notifications(case_id: str):
+def get_notifications(case_id: str, user = Depends(require_auth)):
     return notifications_db.list_notifications(case_id)
 
 
 @app.get("/cases/{case_id}/sla")
-def get_sla(case_id: str):
+def get_sla(case_id: str, user = Depends(require_auth)):
     status = notifications_db.get_sla_status(case_id)
     if status is None:
         raise HTTPException(status_code=404, detail=f"No case {case_id}")
