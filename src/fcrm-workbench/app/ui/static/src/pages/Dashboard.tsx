@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { apiClient, type CaseState } from '../lib/api';
+import { apiClient } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 
 type ParsedCitation = {

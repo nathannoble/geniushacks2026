@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 import type { Session } from '@supabase/supabase-js';
 
@@ -38,6 +38,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           role: meta.role || 'Product Owner'
         });
       }
+      setLoading(false);
+    }).catch(err => {
+      console.error("Session error:", err);
       setLoading(false);
     });
 

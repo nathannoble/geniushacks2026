@@ -26,8 +26,7 @@ def _get_client() -> Anthropic:
 
 _SYSTEM_PROMPT = (
     "You write the plain-language rationale for an FCRM risk score that has "
-    "already been computed by a deterministic scorecard. Explain what drove the "
-    "score using the factor breakdown you're given. Do not propose a different "
+    "already been computed by a deterministic scorecaahe factor breakdown you're given. Do not propose a different "
     "score or tier — your only job is to explain the one you're given, in 3-5 "
     "sentences, in language a committee member without a quantitative background "
     "can follow."
