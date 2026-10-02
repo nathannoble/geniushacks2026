@@ -8,6 +8,33 @@ import { supabase } from './supabase';
 // Use an environment variable for the API base, or fallback to relative for proxy
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
+export interface MonthlySummary {
+  month: string;
+  month_label: string;
+  total_cases: number;
+  avg_risk_score: number;
+  tier_counts: Record<string, number>;
+  status_counts: Record<string, number>;
+  change_type_counts: Record<string, number>;
+  approved_count: number;
+  rejected_count: number;
+  rfi_count: number;
+}
+
+export interface AnalyticsSummary {
+  total_cases: number;
+  overall_avg_risk_score: number;
+  tier_counts: Record<string, number>;
+  status_counts: Record<string, number>;
+  change_type_counts: Record<string, number>;
+  monthly_summaries: MonthlySummary[];
+  approval_metrics: {
+    total_gate1: number;
+    total_gate2: number;
+    outcomes: Record<string, number>;
+  };
+}
+
 export interface CaseState {
   case_id: string;
   product_type: string;
@@ -101,6 +128,97 @@ class FCRMApiClient {
       console.warn('Could not reach /cases endpoint:', err);
     }
     return Object.values(this.localCases);
+  }
+
+  async getAnalyticsSummary(): Promise<AnalyticsSummary | null> {
+    try {
+      const headers = await this.getAuthHeaders();
+      const resp = await fetch(`${API_BASE}/analytics/summary`, { headers, cache: 'no-store' });
+      if (resp.ok) {
+        return await resp.json();
+      }
+    } catch (err) {
+      console.warn('Could not fetch /analytics/summary from backend:', err);
+    }
+
+    // Fallback client-side computation from loaded cases if backend endpoint unavailable
+    const cases = await this.listCases();
+    if (!cases || cases.length === 0) return null;
+
+    const tierCounts: Record<string, number> = { Critical: 0, High: 0, Medium: 0, Low: 0, Pending: 0 };
+    const statusCounts: Record<string, number> = {};
+    const changeTypeCounts: Record<string, number> = {};
+    const monthlyMap: Record<string, any> = {};
+    const scores: number[] = [];
+
+    cases.forEach((c) => {
+      const tier = c.risk_tier || 'Pending';
+      tierCounts[tier] = (tierCounts[tier] || 0) + 1;
+      statusCounts[c.status] = (statusCounts[c.status] || 0) + 1;
+      const ct = c.change_type || 'Change Request';
+      changeTypeCounts[ct] = (changeTypeCounts[ct] || 0) + 1;
+      if (typeof c.risk_score === 'number') scores.push(c.risk_score);
+
+      const d = c.created_at ? new Date(c.created_at) : new Date();
+      const mKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const mLabel = d.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+
+      if (!monthlyMap[mKey]) {
+        monthlyMap[mKey] = {
+          month: mKey,
+          month_label: mLabel,
+          total_cases: 0,
+          scores: [],
+          tier_counts: { Critical: 0, High: 0, Medium: 0, Low: 0, Pending: 0 },
+          status_counts: {},
+          change_type_counts: {},
+          approved_count: 0,
+          rejected_count: 0,
+          rfi_count: 0,
+        };
+      }
+
+      const mEntry = monthlyMap[mKey];
+      mEntry.total_cases++;
+      if (typeof c.risk_score === 'number') mEntry.scores.push(c.risk_score);
+      mEntry.tier_counts[tier] = (mEntry.tier_counts[tier] || 0) + 1;
+      mEntry.status_counts[c.status] = (mEntry.status_counts[c.status] || 0) + 1;
+      mEntry.change_type_counts[ct] = (mEntry.change_type_counts[ct] || 0) + 1;
+      if (c.status === 'closed') mEntry.approved_count++;
+      if (c.status === 'rejected') mEntry.rejected_count++;
+      if (c.status === 'needs_more_information' || c.status === 'rfi') mEntry.rfi_count++;
+    });
+
+    const monthlySummaries: MonthlySummary[] = Object.keys(monthlyMap).sort().map((k) => {
+      const item = monthlyMap[k];
+      const s = item.scores;
+      return {
+        month: item.month,
+        month_label: item.month_label,
+        total_cases: item.total_cases,
+        avg_risk_score: s.length > 0 ? parseFloat((s.reduce((a: number, b: number) => a + b, 0) / s.length).toFixed(2)) : 0,
+        tier_counts: item.tier_counts,
+        status_counts: item.status_counts,
+        change_type_counts: item.change_type_counts,
+        approved_count: item.approved_count,
+        rejected_count: item.rejected_count,
+        rfi_count: item.rfi_count,
+      };
+    });
+
+    return {
+      total_cases: cases.length,
+      overall_avg_risk_score: scores.length > 0 ? parseFloat((scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(2)) : 0,
+      tier_counts: tierCounts,
+      status_counts: statusCounts,
+      change_type_counts: changeTypeCounts,
+      monthly_summaries: monthlySummaries,
+      approval_metrics: {
+        total_gate1: statusCounts['awaiting_gate2'] || 0 + (statusCounts['closed'] || 0),
+        total_gate2: statusCounts['closed'] || 0,
+        outcomes: { Approved: statusCounts['closed'] || 0 },
+      },
+    };
   }
 
   async getCase(caseId: string): Promise<CaseState | null> {

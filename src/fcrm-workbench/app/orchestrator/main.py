@@ -243,6 +243,13 @@ def get_sla(case_id: str, user = Depends(require_auth)):
     return status
 
 
+@app.get("/analytics/summary")
+def get_analytics(user = Depends(require_auth)):
+    """Returns aggregated portfolio risk metrics, monthly summaries, and gate governance velocity."""
+    return orchestrator_db.get_analytics_summary()
+
+
+
 # Workbench UI static placeholder (app/ui/static) — mounted last so it never
 # shadows the API routes above.
 _samples_dir = Path("sample-files")

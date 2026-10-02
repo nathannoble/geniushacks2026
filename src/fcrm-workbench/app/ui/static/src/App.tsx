@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import Dashboard from './pages/Dashboard';
+import Analytics from './pages/Analytics';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -34,6 +35,11 @@ function App() {
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/analytics" element={
+              <ProtectedRoute>
+                <Analytics />
               </ProtectedRoute>
             } />
             {/* Default to dashboard for the legacy demo state (will redirect to login if unauth) */}

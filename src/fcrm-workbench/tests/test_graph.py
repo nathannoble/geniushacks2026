@@ -53,6 +53,8 @@ def _mock_needs_info_case(case_id="FCRM-2026-0002"):
 @patch("app.orchestrator.nodes.notify")
 @patch("app.orchestrator.nodes.orchestrator_db.finalize_case")
 @patch("app.orchestrator.nodes.orchestrator_db.record_gate_decision")
+@patch("app.orchestrator.nodes.orchestrator_db.update_case_status")
+@patch("app.orchestrator.nodes.orchestrator_db.update_case_risk")
 @patch("app.orchestrator.nodes.draft_assessment")
 @patch("app.orchestrator.nodes.compute_risk_score")
 @patch("app.orchestrator.nodes.screen_parties")
@@ -61,7 +63,7 @@ def _mock_needs_info_case(case_id="FCRM-2026-0002"):
 @patch("app.orchestrator.nodes.process_intake")
 def test_happy_path_reaches_gate1_then_gate2_then_closes(
     mock_intake, mock_extract, mock_retrieve, mock_screen, mock_score, mock_draft,
-    mock_record, mock_finalize, mock_notify,
+    mock_risk, mock_status, mock_record, mock_finalize, mock_notify,
 ):
     mock_intake.return_value = _mock_validated_case()
     mock_extract.return_value = ExtractionResult(
@@ -118,6 +120,8 @@ def test_happy_path_reaches_gate1_then_gate2_then_closes(
 
 @patch("app.orchestrator.nodes.notify")
 @patch("app.orchestrator.nodes.orchestrator_db.record_gate_decision")
+@patch("app.orchestrator.nodes.orchestrator_db.update_case_status")
+@patch("app.orchestrator.nodes.orchestrator_db.update_case_risk")
 @patch("app.orchestrator.nodes.draft_assessment")
 @patch("app.orchestrator.nodes.compute_risk_score")
 @patch("app.orchestrator.nodes.screen_parties")
@@ -125,7 +129,8 @@ def test_happy_path_reaches_gate1_then_gate2_then_closes(
 @patch("app.orchestrator.nodes.extract_case_facts")
 @patch("app.orchestrator.nodes.process_intake")
 def test_gate1_rfi_ends_run_without_reaching_gate2(
-    mock_intake, mock_extract, mock_retrieve, mock_screen, mock_score, mock_draft, mock_record, mock_notify,
+    mock_intake, mock_extract, mock_retrieve, mock_screen, mock_score, mock_draft,
+    mock_risk, mock_status, mock_record, mock_notify,
 ):
     mock_intake.return_value = _mock_validated_case(case_id="FCRM-2026-0003")
     mock_extract.return_value = ExtractionResult(case_id="FCRM-2026-0003", facts=[])
