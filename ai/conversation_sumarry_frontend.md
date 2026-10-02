@@ -311,4 +311,48 @@ The dossier view offers complete transparency into the automated compliance engi
 ## 👤 User Response
 This UI implementation is spot-on. The dark cyber-fintech aesthetic combined with the LangGraph pipeline stepper gives the workbench an authentic, mission-critical feel. The 1-click test presets make demonstrating the system seamless, and the condition tagger in the Gate 2 modal provides exactly the level of governance the judges will be looking for. Let's make sure the build passes with zero errors before we package the submission.
 
+---
 
+## 👤 User Prompt (Replay Agents Functionality Update)
+We have a bug with the "Replay Agents" button for our seeded demo cases (`scripts/seed_demo_cases.py`). Because those cases were inserted via raw SQL, they bypassed the LangGraph M1-M6 agents entirely and lack the underlying state data. 
+
+I need you to implement a full backend replay mechanism that mimics the initial submission workflow. Here is what you need to do:
+1. **`app/orchestrator/service.py`**: Add a `replay_case` function that fetches the case row, generates a fresh `thread_id` to ensure a clean state, and re-invokes the LangGraph pipeline from the intake node.
+2. **`app/orchestrator/main.py`**: Expose this via a new `POST /cases/{case_id}/replay` endpoint.
+3. **`app/ui/static/src/lib/api.ts`**: Add the `replayCase` client method to call the endpoint.
+4. **`Dashboard.tsx`**: Wire up the "Replay Agents" button to trigger the API call and subsequently refresh the case dossier.
+
+Go ahead and implement this architecture.
+
+---
+
+## 🤖 AI Execution & Architectural Update
+You are absolutely correct. The `scripts/seed_demo_cases.py` script bypassed the LangGraph AI pipeline to rapidly populate the dashboard, which is why clicking on those cases displayed empty memos and scorecards. 
+
+To fix this, I have created and implemented a comprehensive plan:
+1. **Backend Integration (`app/orchestrator/service.py`):** Added a `replay_case()` function. This safely retrieves the original case submission from PostgreSQL, provisions a fresh `thread_id` to ensure a clean LangGraph state (avoiding bleed-over from previous runs), and re-invokes the graph from the intake node.
+2. **API Endpoint (`app/orchestrator/main.py`):** Exposed a new REST endpoint `POST /cases/{case_id}/replay` that delegates to `replay_case` via a threadpool to handle the blocking graph invocation.
+3. **Frontend API Client (`app/ui/static/src/lib/api.ts`):** Extended `FCRMApiClient` with a `replayCase()` method to communicate with the new replay endpoint and automatically fetch the updated case state upon completion.
+4. **Dashboard Wiring (`Dashboard.tsx`):** Bound the `handleReplay` logic to the Replay Agents button, invalidating React Query caches and automatically reloading the active dossier to display the freshly generated data.
+
+---
+
+## 👤 User Response
+The backend integration is solid and the replay works, but the UX on the replay button is currently static, making it look stuck during processing.
+
+Update `Dashboard.tsx` to make the replay button interactive. It needs to mimic the exact behavior of the 'Submit Change for Risk Assessment' button. Introduce an `isReplaying` state to disable the button and show a spinner, and cycle the button text through the active agent stages via a `setInterval` hook (e.g., "Initializing...", "Document Extraction...", etc.) while the backend is processing. Rebuild the Vite app once complete.
+
+---
+
+## 🤖 AI UI Refinement
+I've updated the "Replay Agents" button to behave exactly like the initial submission button! 
+
+When clicked, the button now transitions into an `isReplaying` state that disables it, displays a spinning loader, and dynamically cycles through the active agent stages:
+- "Initializing Multi-Agent Orchestrator..."
+- "Running Document Extraction (M2)..."
+- "Executing Policy Retrieval (M3)..."
+- "Calculating Risk Score (M5)..."
+- "Drafting Executive Memo (M6)..."
+- "Finalizing Case Dossier..."
+
+This ensures that the user receives clear, continuous visual feedback that the agents are actively processing the case in the background. The Vite client has been rebuilt successfully and the changes are live.
