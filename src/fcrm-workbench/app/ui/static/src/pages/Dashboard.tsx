@@ -161,8 +161,34 @@ export default function Dashboard() {
   const [gate2Conditions, setGate2Conditions] = useState<string[]>([]);
   const [newCondition, setNewCondition] = useState('');
 
-  // Stepper State
-  const [stepperAnimated, setStepperAnimated] = useState(false);
+  // Replay State
+  const [isReplaying, setIsReplaying] = useState(false);
+  const [replayProgressMessage, setReplayProgressMessage] = useState('Replay Agents');
+
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    if (isReplaying) {
+      const messages = [
+        "Initializing Multi-Agent Orchestrator...",
+        "Running Document Extraction (M2)...",
+        "Executing Policy Retrieval (M3)...",
+        "Calculating Risk Score (M5)...",
+        "Drafting Executive Memo (M6)...",
+        "Finalizing Case Dossier..."
+      ];
+      let i = 0;
+      setReplayProgressMessage(messages[0]);
+      interval = setInterval(() => {
+        i++;
+        if (i < messages.length) {
+          setReplayProgressMessage(messages[i]);
+        }
+      }, 1500);
+    } else {
+      setReplayProgressMessage('Replay Agents');
+    }
+    return () => clearInterval(interval);
+  }, [isReplaying]);
 
   // KPI Filters
   const [activeFilterStatus, setActiveFilterStatus] = useState('all');
@@ -203,6 +229,24 @@ export default function Dashboard() {
       queryClient.invalidateQueries({ queryKey: ['cases'] });
       queryClient.invalidateQueries({ queryKey: ['case', currentCaseId] });
       openDossier(currentCaseId);
+    }
+  };
+
+  const handleReplay = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!dossierData) return;
+    
+    setIsReplaying(true);
+    
+    try {
+      await apiClient.replayCase(dossierData.case_id);
+      queryClient.invalidateQueries({ queryKey: ['cases'] });
+      queryClient.invalidateQueries({ queryKey: ['case', dossierData.case_id] });
+      openDossier(dossierData.case_id);
+    } catch (err) {
+      console.error("Failed to replay agents", err);
+    } finally {
+      setIsReplaying(false);
     }
   };
 
@@ -938,9 +982,19 @@ export default function Dashboard() {
                   <div className="stepper-title">
                     <span>End-to-End Orchestrator Pipeline</span>
                     <div style={{display: 'flex', alignItems: 'center', gap: '0.75rem'}}>
-                      <button type="button" className="btn-stepper-replay" title="Re-run agent pipeline execution flow" onClick={() => setStepperAnimated(!stepperAnimated)}>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                        <span>Replay Agents</span>
+                      <button 
+                        type="button" 
+                        className={`btn-stepper-replay ${isReplaying ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                        title="Re-run agent pipeline execution flow" 
+                        onClick={handleReplay}
+                        disabled={isReplaying}
+                      >
+                        {isReplaying ? (
+                          <svg className="animate-spin" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>
+                        ) : (
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                        )}
+                        <span>{replayProgressMessage}</span>
                       </button>
                       <span className="text-xs font-mono text-cyan">LangGraph Execution Flow</span>
                     </div>

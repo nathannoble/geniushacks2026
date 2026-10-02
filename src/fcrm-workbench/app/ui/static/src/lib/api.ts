@@ -275,6 +275,26 @@ class FCRMApiClient {
     }
   }
 
+  async replayCase(caseId: string): Promise<any> {
+    try {
+      const headers = await this.getAuthHeaders();
+      const resp = await fetch(`${API_BASE}/cases/${caseId}/replay`, {
+        method: 'POST',
+        headers: headers,
+      });
+
+      if (resp.ok) {
+        return await this.getCase(caseId);
+      } else {
+        const err = await resp.json().catch(() => ({}));
+        return { success: false, error: err.detail || 'Replay failed' };
+      }
+    } catch (err: any) {
+      console.error('Replay failed:', err);
+      return { success: false, error: err.message };
+    }
+  }
+
   async resubmitCase(caseId: string, payload: FormData | Record<string, any>): Promise<any> {
     try {
       const headers = await this.getAuthHeaders();

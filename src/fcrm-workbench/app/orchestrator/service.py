@@ -34,6 +34,29 @@ def start_case(submission: dict, documents: list[dict]) -> dict:
     return _snapshot_to_dict(state)
 
 
+def replay_case(case_id: str) -> dict:
+    """Replays the entire case pipeline from the beginning with a fresh thread.
+    Particularly useful for synthetic/seeded cases that bypassed the graph."""
+    row = orchestrator_db.get_case_row(case_id)
+    if not row:
+        raise ValueError(f"Case {case_id} not found in database")
+    
+    submission = row.get("submission") or {}
+    documents = row.get("documents") or []
+    
+    new_thread_id = str(uuid.uuid4())
+    orchestrator_db.set_thread_id(case_id, new_thread_id)
+    orchestrator_db.update_case_status(case_id, "processing")
+    
+    with get_checkpointer() as checkpointer:
+        graph = get_compiled_graph(checkpointer)
+        config = {"configurable": {"thread_id": new_thread_id}}
+        graph.invoke({"case_id": case_id, "submission": submission, "documents": documents}, config)
+        state = graph.get_state(config)
+        
+    return _snapshot_to_dict(state)
+
+
 def resubmit_case(case_id: str, submission: dict, documents: list[dict]) -> dict:
     """The Gate 1 RFI loop's other half — re-enters the same thread at
     intake with updated fields, which then flows through the whole graph

@@ -28,6 +28,7 @@ from app.orchestrator import db as orchestrator_db
 from app.middleware.auth import require_auth
 from app.orchestrator.service import (
     get_case_state,
+    replay_case,
     resolve_gate1,
     resolve_gate2,
     resubmit_case,
@@ -227,6 +228,17 @@ async def get_state(case_id: str, user = Depends(require_auth)):
         if row:
             return {"case_id": case_id, "status": row.get("status"), "row": row}
         raise HTTPException(status_code=404, detail=f"No state available for {case_id}: {exc}")
+
+
+
+@app.post("/cases/{case_id}/replay")
+async def replay(case_id: str, user = Depends(require_auth)):
+    try:
+        return await run_in_threadpool(replay_case, case_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
 
 
 
