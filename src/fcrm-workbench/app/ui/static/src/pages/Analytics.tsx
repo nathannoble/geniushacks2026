@@ -839,10 +839,10 @@ export default function Analytics() {
           </div>
 
           <div style={{ overflowX: 'auto' }}>
-            <table className="queue-table" style={{ width: '100%' }}>
+            <table className="cases-table" style={{ width: '100%' }}>
               <thead>
                 <tr>
-                  <th>Month</th>
+                  <th style={{ textAlign: 'left' }}>Month</th>
                   <th style={{ textAlign: 'center' }}>Total Intake</th>
                   <th style={{ textAlign: 'center' }}>Avg Risk Score</th>
                   <th style={{ textAlign: 'center' }}>Critical / High</th>
@@ -898,15 +898,23 @@ export default function Analytics() {
                             {m.avg_risk_score.toFixed(2)}
                           </span>
                         </td>
-                        <td style={{ textAlign: 'center' }}>
-                          <span className={critHigh > 0 ? 'badge-risk-high' : ''}>
-                            {critHigh}
-                          </span>
+                        <td
+                          style={{
+                            textAlign: 'center',
+                            fontWeight: 600,
+                            color: critHigh > 0 ? 'var(--risk-high-border)' : 'var(--text-muted)',
+                          }}
+                        >
+                          {critHigh}
                         </td>
-                        <td style={{ textAlign: 'center' }}>
-                          <span className={medLow > 0 ? 'badge-risk-low' : ''}>
-                            {medLow}
-                          </span>
+                        <td
+                          style={{
+                            textAlign: 'center',
+                            fontWeight: 600,
+                            color: medLow > 0 ? 'var(--risk-low-border)' : 'var(--text-muted)',
+                          }}
+                        >
+                          {medLow}
                         </td>
                         <td style={{ textAlign: 'center', color: 'var(--accent-emerald)', fontWeight: 600 }}>
                           {m.approved_count}
@@ -976,37 +984,25 @@ export default function Analytics() {
           </div>
 
           <div style={{ overflowX: 'auto' }}>
-            <table className="queue-table" style={{ width: '100%' }}>
+            <table className="cases-table" style={{ width: '100%' }}>
               <thead>
                 <tr>
-                  <th>Case ID</th>
-                  <th>Product / Initiative</th>
-                  <th>Change Type</th>
-                  <th>Risk Tier</th>
-                  <th style={{ textAlign: 'center' }}>Score</th>
-                  <th>Status</th>
-                  <th>Created Date</th>
+                  <th style={{ textAlign: 'left' }}>Case ID</th>
+                  <th style={{ textAlign: 'left' }}>Product / Initiative</th>
+                  <th style={{ textAlign: 'left' }}>Change Type</th>
+                  <th style={{ textAlign: 'left' }}>Created Date</th>
                   <th style={{ textAlign: 'right' }}>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredCases.length === 0 ? (
                   <tr>
-                    <td colSpan={8} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+                    <td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
                       No cases found for this period.
                     </td>
                   </tr>
                 ) : (
                   filteredCases.map(c => {
-                    const tierClass =
-                      c.risk_tier === 'Critical'
-                        ? 'badge-risk-critical'
-                        : c.risk_tier === 'High'
-                        ? 'badge-risk-high'
-                        : c.risk_tier === 'Medium'
-                        ? 'badge-risk-medium'
-                        : 'badge-risk-low';
-
                     const dateStr = c.created_at
                       ? new Date(c.created_at).toLocaleDateString('en-US', {
                           month: 'short',
@@ -1026,49 +1022,10 @@ export default function Analytics() {
                           <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
                             {c.product_type}
                           </div>
-                          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', maxWidth: '280px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {c.description}
-                          </div>
                         </td>
                         <td>
                           <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                             {c.change_type}
-                          </span>
-                        </td>
-                        <td>
-                          <span className={tierClass}>{c.risk_tier || 'Pending'}</span>
-                        </td>
-                        <td style={{ textAlign: 'center', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
-                          {typeof c.risk_score === 'number' ? c.risk_score.toFixed(2) : '—'}
-                        </td>
-                        <td>
-                          <span
-                            style={{
-                              fontSize: '0.75rem',
-                              padding: '0.2rem 0.5rem',
-                              borderRadius: '4px',
-                              background:
-                                c.status === 'closed'
-                                  ? 'rgba(16, 185, 129, 0.15)'
-                                  : c.status === 'awaiting_gate2'
-                                  ? 'rgba(168, 85, 247, 0.15)'
-                                  : c.status === 'awaiting_gate1'
-                                  ? 'rgba(245, 158, 11, 0.15)'
-                                  : 'rgba(56, 189, 248, 0.15)',
-                              color:
-                                c.status === 'closed'
-                                  ? 'var(--accent-emerald)'
-                                  : c.status === 'awaiting_gate2'
-                                  ? 'var(--accent-purple)'
-                                  : c.status === 'awaiting_gate1'
-                                  ? 'var(--accent-amber)'
-                                  : 'var(--accent-cyan)',
-                              fontWeight: 600,
-                              textTransform: 'uppercase',
-                              letterSpacing: '0.04em',
-                            }}
-                          >
-                            {c.status.replace('_', ' ')}
                           </span>
                         </td>
                         <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
