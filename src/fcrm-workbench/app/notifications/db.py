@@ -77,3 +77,30 @@ def get_sla_status(case_id: str) -> Optional[dict]:
         return None
     created_at, status = row
     return compute_sla(case_id, status, created_at)
+
+def get_emails_by_role(role: str) -> list[str]:
+    conn = _connect()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT email FROM auth.users WHERE raw_user_meta_data->>'role' = %s",
+                (role,)
+            )
+            rows = cur.fetchall()
+            return [row[0] for row in rows if row[0]]
+    finally:
+        conn.close()
+
+def get_case_details(case_id: str) -> dict:
+    conn = _connect()
+    try:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(
+                "SELECT change_type, risk_tier, risk_score, submission, created_at, status "
+                "FROM cases WHERE case_id = %s",
+                (case_id,)
+            )
+            row = cur.fetchone()
+            return dict(row) if row else {}
+    finally:
+        conn.close()
